@@ -2,22 +2,30 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export interface ITokenInfo {
+  activeModePath: string;
+  model: string;
+  name: string;
+  passiveModePath: string;
+  serial: string;
+}
+
+export interface IConnectedDeviceInfo {
   passiveTokenPath: string[];
   activeTokenPath: string[];
-  tokenInfo: string[];
+  tokenInfo: ITokenInfo[];
 }
 
 export interface ICipherStoreState {
   updateUCESAgentStatusHandlerId: number | null;
   updateUCESAgentStatusInterval: number;
   isUCESAgentConnected: boolean;
-  connectedToken: ITokenInfo;
+  connectedToken: IConnectedDeviceInfo;
 }
 
 export const useCipher = defineStore('cipher', {
   state: (): ICipherStoreState => ({
     updateUCESAgentStatusHandlerId: null,
-    updateUCESAgentStatusInterval: 5000,
+    updateUCESAgentStatusInterval: 2500,
     isUCESAgentConnected: false,
     connectedToken: {
       passiveTokenPath: [],
@@ -25,7 +33,14 @@ export const useCipher = defineStore('cipher', {
       tokenInfo: [],
     },
   }),
-  getters: {},
+  getters: {
+    isTokenConnected(): boolean {
+      return this.connectedToken.tokenInfo.length > 0;
+    },
+    connectedTokenInfo(): ITokenInfo {
+      return this.connectedToken.tokenInfo[0];
+    },
+  },
   actions: {
     async checkUCESAgentStatus() {
       this.setUCESAgentStatus(await this.getUCESAgentStatus());
