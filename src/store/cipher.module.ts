@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { api } from '@/api';
 
 export interface ITokenInfo {
   activeModePath: string;
@@ -20,6 +20,14 @@ export interface ICipherStoreState {
   updateUCESAgentStatusInterval: number;
   isUCESAgentConnected: boolean;
   connectedToken: IConnectedDeviceInfo;
+  session: {
+    ticketUuid: string;
+    settedOptions: {
+      caId: string;
+    },
+    certificateLoaded: boolean,
+    certificateInfo: any;
+  }
 }
 
 export const useCipher = defineStore('cipher', {
@@ -32,6 +40,14 @@ export const useCipher = defineStore('cipher', {
       activeTokenPath: [],
       tokenInfo: [],
     },
+    session: {
+      ticketUuid: '',
+      settedOptions: {
+        caId: '',
+      },
+      certificateLoaded: false,
+      certificateInfo: {},
+    },
   }),
   getters: {
     isTokenConnected(): boolean {
@@ -39,6 +55,12 @@ export const useCipher = defineStore('cipher', {
     },
     connectedTokenInfo(): ITokenInfo {
       return this.connectedToken.tokenInfo[0];
+    },
+    certificateInfo(): any {
+      return this.session.certificateInfo;
+    },
+    ownerInfo(): any {
+      return this.certificateInfo?.keyAgreement?.certificateInfo?.ownerCertificateInfo?.value;
     },
   },
   actions: {
@@ -54,7 +76,7 @@ export const useCipher = defineStore('cipher', {
     },
     async getUCESAgentStatus() {
       try {
-        await axios.get('https://local.cipher.kiev.ua:9090/api/v1/status');
+        await api.getStatus();
         return true;
       } catch (error) {
         return false;
@@ -65,9 +87,44 @@ export const useCipher = defineStore('cipher', {
     },
     async getConnectedTokenInfo() {
       try {
-        const { data } = await axios.get('https://local.cipher.kiev.ua:9090/api/v1/token/connected');
+        const { data } = await api.getConnectedToken();
         this.connectedToken = data;
       } catch (error) {
+        console.error(error);
+      }
+    },
+    async createSession() {
+      try {
+        const { data: { ticketUuid }} = await api.createSession();
+        this.session.ticketUuid = ticketUuid;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async setSessionOptions() {
+      try {
+        const options = { caId: 'iddDfs' };
+        const { data } = await api.setSessionOptions(this.session.ticketUuid, options);
+        this.session.settedOptions.caId = data.settedOptions.caId;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async loadKeystoreContainer() {
+      try {
+        const options = { keyStorePath: this.connectedTokenInfo.activeModePath };
+        await api.loadKeystoreContainer(this.session.ticketUuid, options);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async verifyKeystoreContainer(keyStorePassword: string) {
+      try {
+        const { data } = await api.verifyKeystoreContainer(this.session.ticketUuid, keyStorePassword);
+        this.session.certificateLoaded = true;
+        this.session.certificateInfo = data;
+      } catch (error) {
+        this.session.certificateLoaded = false;
         console.error(error);
       }
     },
