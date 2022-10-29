@@ -15,6 +15,49 @@ export interface IConnectedDeviceInfo {
   tokenInfo: ITokenInfo[];
 }
 
+export interface ICertificateProperty {
+  description: string;
+  value: any;
+}
+
+export interface ICertificateInfo {
+  keyAgreement: {
+    canBeUsed: boolean;
+    certificateInfo: {
+      certificateSerialNumber: ICertificateProperty;
+      extensionsCertificateInfo: {
+        description: string;
+        value: {
+          alternativeOwnerName: ICertificateProperty;
+          certificateProfile: ICertificateProperty;
+          hashAlgorithmForEs: ICertificateProperty;
+          isElectronicStamp: ICertificateProperty;
+          isPrivateKeyOnQSCD: ICertificateProperty;
+          isQualified: ICertificateProperty;
+          isReinforced: ICertificateProperty;
+          isTemporary: ICertificateProperty;
+          issuerKeyId: ICertificateProperty;
+          keyUsage: ICertificateProperty;
+          personalData: ICertificateProperty;
+          qscdTypeName: ICertificateProperty;
+          subjectKeyId: ICertificateProperty;
+          subjectOwnerId: ICertificateProperty;
+        };
+      };
+      issuerCertificateInfo: {
+        description: string;
+        value: any;
+      };
+      notAfter: any;
+      notBefore: any;
+      ownerCertificateInfo: any;
+      publicKeyCertificateInfo: any;
+    };
+    message: string;
+  };
+  signature: any;
+}
+
 export interface ICipherStoreState {
   updateUCESAgentStatusHandlerId: number | null;
   updateUCESAgentStatusInterval: number;
@@ -26,7 +69,7 @@ export interface ICipherStoreState {
       caId: string;
     },
     certificateLoaded: boolean,
-    certificateInfo: any;
+    certificateInfo: ICertificateInfo | null;
   }
 }
 
@@ -46,7 +89,7 @@ export const useCipher = defineStore('cipher', {
         caId: '',
       },
       certificateLoaded: false,
-      certificateInfo: {},
+      certificateInfo: null,
     },
   }),
   getters: {
