@@ -44,10 +44,7 @@ export interface ICertificateInfo {
           subjectOwnerId: ICertificateProperty;
         };
       };
-      issuerCertificateInfo: {
-        description: string;
-        value: any;
-      };
+      issuerCertificateInfo: ICertificateProperty;
       notAfter: any;
       notBefore: any;
       ownerCertificateInfo: any;
